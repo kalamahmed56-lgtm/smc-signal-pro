@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.json">
+<title>SMC Signal Pro</title>
+<style>
+:root{color-scheme:dark;--bg:#080b14;--card:#111727;--line:#263149;--text:#f5f7fb;--muted:#9aa6bd;--accent:#5eead4;--buy:#34d399;--sell:#fb7185}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#080b14,#0d1322);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text)}
+header{padding:18px 16px 10px;position:sticky;top:0;background:#080b14ee;backdrop-filter:blur(12px);z-index:2}
+h1{font-size:22px;margin:0 0 4px}.sub{font-size:12px;color:var(--muted)}
+main{padding:10px 14px 40px;max-width:700px;margin:auto}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin:10px 0;box-shadow:0 8px 30px #0003}
+label{display:block;color:var(--muted);font-size:12px;margin:8px 0 5px}
+select,button{width:100%;border-radius:12px;border:1px solid var(--line);background:#0b1120;color:var(--text);padding:12px;font-size:15px}
+button{background:#18243b;font-weight:700;margin-top:10px}button.primary{background:#0f766e;border-color:#14b8a6}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:#0b1120;border:1px solid var(--line);padding:11px;border-radius:13px}.metric small{display:block;color:var(--muted);font-size:11px}.metric b{display:block;margin-top:3px;font-size:15px}
+.signal{font-size:27px;font-weight:800;padding:8px 0}.buy{color:var(--buy)}.sell{color:var(--sell)}.none{color:var(--muted)}
+.status{font-size:12px;color:var(--muted);line-height:1.5}.levels{font-size:13px;line-height:1.8}
+footer{color:#73809a;font-size:11px;text-align:center;padding:10px 20px 30px}
+</style>
+</head>
+<body>
+<header><h1>📈 SMC Signal Pro</h1><div class="sub">Liquidity sweep → BOS → displacement → FVG → signal</div></header>
+<main>
+<div class="card">
+<label>Market</label><select id="market">
+<option value="NZDUSD=X">NZD/USD</option><option value="EURUSD=X">EUR/USD</option>
+<option value="GBPUSD=X">GBP/USD</option><option value="USDJPY=X">USD/JPY</option><option value="AUDUSD=X">AUD/USD</option>
+</select>
+<label>Timeframe</label><select id="tf"><option value="5m">5 minutes</option><option value="15m" selected>15 minutes</option><option value="30m">30 minutes</option><option value="1h">1 hour</option></select>
+<label>Target R:R</label><select id="rr"><option>2</option><option>2.5</option><option>3</option><option>4</option></select>
+<button class="primary" onclick="scan()">🔎 Scan latest completed candle</button>
+<button onclick="notifyPermission()">🔔 Enable phone notifications</button>
+</div>
+
+<div class="card" id="result">
+<div class="signal none">No scan yet</div>
+<div class="status">Choose a market and timeframe, then scan. The app uses the latest completed candle.</div>
+</div>
+
+<div class="card">
+<b>Liquidity levels</b>
+<div class="levels" id="levels">—</div>
+</div>
+
+<div class="card">
+<b>How the signal works</b>
+<div class="status">
+BUY = sell-side liquidity sweep + bullish structure break + displacement + bullish FVG.<br>
+SELL = buy-side liquidity sweep + bearish structure break + displacement + bearish FVG.<br>
+Stop is placed beyond swept liquidity; target is calculated from your selected R:R.
+</div>
+</div>
+</main>
+<footer>Educational scanner only. Public market data may be delayed/unavailable. Do not use a signal as a guarantee or as a substitute for risk management.</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+function fmt(x){return Number(x).toFixed(5)}
+function atr(a,n=14){
+ let tr=[]; for(let i=0;i<a.length;i++){let p=i?a[i-1].close:a[i].close;
+ tr.push(Math.max(a[i].high-a[i].low,Math.abs(a[i].high-p),Math.abs(a[i].low-p)))}
+ let out=Array(a.length).fill(null);
+ for(let i=n-1;i<a.length;i++)out[i]=tr.slice(i-n+1,i+1).reduce((x,y)=>x+y,0)/n;
+ return out;
+}
+async function data(symbol,interval){
+ const now=Math.floor(Date.now()/1000), days=interval==="5m"||interval==="15m"?7:35;
+ const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?period1=${now-days*86400}&period2=${now}&interval=${interval}&events=history&includeAdjustedClose=true`;
+ const r=await fetch(url); if(!r.ok)throw Error("Market data request failed");
+ const j=await r.json(), q=j.chart.result?.[0]; if(!q)throw Error("No market data");
+ const ts=q.timestamp||[], o=q.indicators.quote[0];
+ return ts.map((t,i)=>({time:new Date(t*1000),open:o.open[i],high:o.high[i],low:o.low[i],close:o.close[i]}))
+ .filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite));
+}
+function scanSMC(a,rr){
+ if(a.length<50)return null;
+ const A=atr(a), i=a.length-2, c=a[i];
+ const prior=a.slice(Math.max(0,i-30),i);
+ const recentHigh=Math.max(...prior.map(x=>x.high)), recentLow=Math.min(...prior.map(x=>x.low));
+ const ref=a.slice(Math.max(0,i-8),i);
+ const structHigh=Math.max(...ref.map(x=>x.high)), structLow=Math.min(...ref.map(x=>x.low));
+ const sweptHigh=c.high>recentHigh&&c.close<recentHigh, sweptLow=c.low<recentLow&&c.close>recentLow;
+ const displacement=A[i] && Math.abs(c.close-c.open)>=.8*A[i];
+ const x=a[i-2];
+ let side=null,low,high,sl,tp,reason;
+ if(sweptLow&&displacement&&c.close>structHigh){
+   side="BUY"; low=x.high; high=c.low; if(!(high>low)){low=Math.min(c.open,c.close);high=Math.max(c.open,c.close)}
+   sl=Math.min(c.low,recentLow); tp=high+rr*(high-sl);
+   reason="Sell-side liquidity sweep + bullish BOS/displacement"+(c.low>x.high?" + bullish FVG":"");
+ } else if(sweptHigh&&displacement&&c.close<structLow){
+   side="SELL"; low=c.high; high=x.low; if(!(high>low)){low=Math.min(c.open,c.close);high=Math.max(c.open,c.close)}
+   sl=Math.max(c.high,recentHigh); tp=low-rr*(sl-low);
+   reason="Buy-side liquidity sweep + bearish BOS/displacement"+(c.high<x.low?" + bearish FVG":"");
+ }
+ if(!side)return null;
+ return {side,low,high,sl,tp,reason,time:c.time,close:c.close};
+}
+async function scan(){
+ const r=$("result"); r.innerHTML='<div class="signal none">Scanning…</div><div class="status">Loading market candles.</div>';
+ try{
+   const symbol=$("market").value, name=$("market").selectedOptions[0].text, tf=$("tf").value, rr=Number($("rr").value);
+   const a=await data(symbol,tf), s=scanSMC(a,rr);
+   const last=a[a.length-2];
+   $("levels").innerHTML=`Recent liquidity high: <b>${fmt(Math.max(...a.slice(-32,-2).map(x=>x.high)))}</b><br>Recent liquidity low: <b>${fmt(Math.min(...a.slice(-32,-2).map(x=>x.low)))}</b>`;
+   if(!s){r.innerHTML='<div class="signal none">NO CONFIRMED SETUP</div><div class="status">No complete liquidity-sweep + BOS + displacement setup on the latest completed candle.</div>';return}
+   const cls=s.side==="BUY"?"buy":"sell";
+   r.innerHTML=`<div class="signal ${cls}">${s.side==="BUY"?"🟢 BUY":"🔴 SELL"} SETUP</div>
+   <div class="grid"><div class="metric"><small>Entry zone</small><b>${fmt(s.low)} – ${fmt(s.high)}</b></div>
+   <div class="metric"><small>Stop loss</small><b>${fmt(s.sl)}</b></div>
+   <div class="metric"><small>Take profit</small><b>${fmt(s.tp)}</b></div>
+   <div class="metric"><small>R:R</small><b>1:${rr}</b></div></div>
+   <p class="status"><b>${name} · ${tf}</b><br>${s.reason}<br>Completed candle: ${s.time.toLocaleString()}</p>`;
+   localStorage.setItem("lastSignal",JSON.stringify({key:s.time+"-"+s.side,s}));
+   if(Notification.permission==="granted") new Notification(`SMC ${s.side} — ${name}`,{body:`Entry ${fmt(s.low)}-${fmt(s.high)} | SL ${fmt(s.sl)} | TP ${fmt(s.tp)}`});
+ }catch(e){r.innerHTML=`<div class="signal none">DATA ERROR</div><div class="status">${e.message}. Try again in a moment or use a broker/market-data API for more reliable live data.</div>`}
+}
+async function notifyPermission(){
+ if(!("Notification"in window)){alert("Notifications are not supported by this browser.");return}
+ const p=await Notification.requestPermission(); alert(p==="granted"?"Notifications enabled.":"Notification permission was not granted.");
+}
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
