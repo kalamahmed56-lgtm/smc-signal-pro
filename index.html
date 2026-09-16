@@ -1,127 +1,93 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b1020">
-<link rel="manifest" href="manifest.json">
-<title>SMC Signal Pro</title>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f"><link rel="manifest" href="manifest.json"><title>Delta SMC Signal Pro</title>
 <style>
-:root{color-scheme:dark;--bg:#080b14;--card:#111727;--line:#263149;--text:#f5f7fb;--muted:#9aa6bd;--accent:#5eead4;--buy:#34d399;--sell:#fb7185}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#080b14,#0d1322);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text)}
-header{padding:18px 16px 10px;position:sticky;top:0;background:#080b14ee;backdrop-filter:blur(12px);z-index:2}
-h1{font-size:22px;margin:0 0 4px}.sub{font-size:12px;color:var(--muted)}
-main{padding:10px 14px 40px;max-width:700px;margin:auto}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin:10px 0;box-shadow:0 8px 30px #0003}
-label{display:block;color:var(--muted);font-size:12px;margin:8px 0 5px}
-select,button{width:100%;border-radius:12px;border:1px solid var(--line);background:#0b1120;color:var(--text);padding:12px;font-size:15px}
-button{background:#18243b;font-weight:700;margin-top:10px}button.primary{background:#0f766e;border-color:#14b8a6}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:#0b1120;border:1px solid var(--line);padding:11px;border-radius:13px}.metric small{display:block;color:var(--muted);font-size:11px}.metric b{display:block;margin-top:3px;font-size:15px}
-.signal{font-size:27px;font-weight:800;padding:8px 0}.buy{color:var(--buy)}.sell{color:var(--sell)}.none{color:var(--muted)}
-.status{font-size:12px;color:var(--muted);line-height:1.5}.levels{font-size:13px;line-height:1.8}
-footer{color:#73809a;font-size:11px;text-align:center;padding:10px 20px 30px}
-</style>
-</head>
+*{box-sizing:border-box}body{margin:0;background:#07111f;color:#f7fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:18px 16px 8px;position:sticky;top:0;background:#07111fee;backdrop-filter:blur(12px);z-index:5}
+h1{font-size:21px;margin:0}.muted{color:#91a0b8;font-size:12px}main{max-width:720px;margin:auto;padding:10px 14px 35px}
+.card{background:#0e1a2c;border:1px solid #24344d;border-radius:18px;padding:15px;margin:10px 0}
+label{display:block;color:#9cacbf;font-size:12px;margin:9px 0 5px}
+select,button{width:100%;padding:12px;border-radius:12px;border:1px solid #2a3b56;background:#091323;color:#fff;font-size:15px}
+button{margin-top:10px;font-weight:750;background:#12304d}.primary{background:#0f766e;border-color:#14b8a6}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.m{padding:11px;background:#091323;border:1px solid #263750;border-radius:12px}.m small{display:block;color:#92a1b8}.m b{display:block;margin-top:3px}
+.signal{font-size:29px;font-weight:900}.buy{color:#35d399}.sell{color:#fb7185}.wait{color:#a9b6c9}
+.badge{display:inline-block;padding:4px 8px;border-radius:99px;background:#172941;font-size:11px;margin:3px 3px 0 0}
+hr{border:0;border-top:1px solid #24344d;margin:14px 0}.score{font-size:34px;font-weight:900}.warn{color:#fbbf24}.small{font-size:12px;line-height:1.55;color:#9cacbf}
+</style></head>
 <body>
-<header><h1>📈 SMC Signal Pro</h1><div class="sub">Liquidity sweep → BOS → displacement → FVG → signal</div></header>
+<header><h1>📈 Delta SMC Signal Pro</h1><div class="muted">Delta Exchange market data • confluence scanner</div></header>
 <main>
 <div class="card">
-<label>Market</label><select id="market">
-<option value="NZDUSD=X">NZD/USD</option><option value="EURUSD=X">EUR/USD</option>
-<option value="GBPUSD=X">GBP/USD</option><option value="USDJPY=X">USD/JPY</option><option value="AUDUSD=X">AUD/USD</option>
-</select>
-<label>Timeframe</label><select id="tf"><option value="5m">5 minutes</option><option value="15m" selected>15 minutes</option><option value="30m">30 minutes</option><option value="1h">1 hour</option></select>
-<label>Target R:R</label><select id="rr"><option>2</option><option>2.5</option><option>3</option><option>4</option></select>
-<button class="primary" onclick="scan()">🔎 Scan latest completed candle</button>
-<button onclick="notifyPermission()">🔔 Enable phone notifications</button>
+<label>Contract</label><select id="symbol"><option>BTCUSD</option><option>ETHUSD</option><option>SOLUSD</option><option>XRPUSD</option></select>
+<label>Signal mode</label><select id="mode"><option value="5">5-minute</option><option value="15">15-minute</option></select>
+<label>Minimum setup score</label><select id="min"><option value="7">7 / 10</option><option value="8" selected>8 / 10</option><option value="9">9 / 10</option></select>
+<button class="primary" onclick="runScan()">🔎 SCAN DELTA MARKET</button>
+<button onclick="enableNotify()">🔔 Enable phone notifications</button>
 </div>
-
-<div class="card" id="result">
-<div class="signal none">No scan yet</div>
-<div class="status">Choose a market and timeframe, then scan. The app uses the latest completed candle.</div>
-</div>
-
-<div class="card">
-<b>Liquidity levels</b>
-<div class="levels" id="levels">—</div>
-</div>
-
-<div class="card">
-<b>How the signal works</b>
-<div class="status">
-BUY = sell-side liquidity sweep + bullish structure break + displacement + bullish FVG.<br>
-SELL = buy-side liquidity sweep + bearish structure break + displacement + bearish FVG.<br>
-Stop is placed beyond swept liquidity; target is calculated from your selected R:R.
-</div>
-</div>
+<div class="card" id="out"><div class="signal wait">READY</div><div class="small">Scan a completed candle. The app will only issue a directional signal when enough conditions agree.</div></div>
+<div class="card"><b>Risk reminder</b><div class="small warn">A setup score is not a win probability. Futures use leverage and can lose money quickly. This app does not place trades.</div></div>
+<div class="card"><b>Strategy</b><div class="small">
+BUY: higher-timeframe EMA trend + sell-side liquidity sweep + bullish BOS + FVG/OB + RSI + volume/displacement.<br>
+SELL: inverse conditions.<br>
+5m mode uses 15m trend + 5m entry. 15m mode uses 1h trend + 15m entry.
+</div></div>
 </main>
-<footer>Educational scanner only. Public market data may be delayed/unavailable. Do not use a signal as a guarantee or as a substitute for risk management.</footer>
-
 <script>
+const API="https://api.india.delta.exchange/v2/history/candles";
 const $=id=>document.getElementById(id);
-function fmt(x){return Number(x).toFixed(5)}
-function atr(a,n=14){
- let tr=[]; for(let i=0;i<a.length;i++){let p=i?a[i-1].close:a[i].close;
- tr.push(Math.max(a[i].high-a[i].low,Math.abs(a[i].high-p),Math.abs(a[i].low-p)))}
- let out=Array(a.length).fill(null);
- for(let i=n-1;i<a.length;i++)out[i]=tr.slice(i-n+1,i+1).reduce((x,y)=>x+y,0)/n;
- return out;
+function ema(a,n){let k=2/(n+1),e=a[0];return a.map((x,i)=>i?e=x*k+e*(1-k):e)}
+function rsi(a,n=14){let out=Array(a.length).fill(null),g=0,l=0;for(let i=1;i<a.length;i++){let d=a[i]-a[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n;if(i>=n)out[i]=l?100-100/(1+g/l):100}return out}
+function atr(c,n=14){let tr=[];for(let i=0;i<c.length;i++){let p=i?c[i-1].close:c[i].close;tr.push(Math.max(c[i].high-c[i].low,Math.abs(c[i].high-p),Math.abs(c[i].low-p)))}let out=Array(c.length).fill(null);for(let i=n-1;i<c.length;i++)out[i]=tr.slice(i-n+1,i+1).reduce((x,y)=>x+y,0)/n;return out}
+async function candles(symbol,res,hours){let end=Math.floor(Date.now()/1000),start=end-hours*3600;let u=`${API}?resolution=${res}&symbol=${symbol}&start=${start}&end=${end}`;let r=await fetch(u);if(!r.ok)throw Error("Delta API request failed ("+r.status+")");let j=await r.json();if(!j.success)throw Error("Delta returned an error");return j.result.sort((a,b)=>a.time-b.time).map(x=>({time:new Date(x.time*1000),open:+x.open,high:+x.high,low:+x.low,close:+x.close,volume:+x.volume})).filter(x=>Number.isFinite(x.close))}
+function scoreSetup(htf,ltf){
+ if(htf.length<220||ltf.length<80)return null;
+ let hc=htf.map(x=>x.close),lc=ltf.map(x=>x.close),he50=ema(hc,50),he200=ema(hc,200),le20=ema(lc,20),le50=ema(lc,50),lr=rsi(lc),la=atr(ltf);
+ let i=ltf.length-2,c=ltf[i], prior=ltf.slice(i-30,i), hi=Math.max(...prior.map(x=>x.high)),lo=Math.min(...prior.map(x=>x.low));
+ let ref=ltf.slice(i-8,i), sh=Math.max(...ref.map(x=>x.high)),sl=Math.min(...ref.map(x=>x.low));
+ let sweptLow=c.low<lo&&c.close>lo, sweptHigh=c.high>hi&&c.close<hi;
+ let displacement=la[i] && Math.abs(c.close-c.open)>=0.8*la[i];
+ let avgVol=ltf.slice(i-20,i).reduce((s,x)=>s+x.volume,0)/20, vol=c.volume>=avgVol*1.15;
+ let bullFVG=c.low>ltf[i-2].high, bearFVG=c.high<ltf[i-2].low;
+ let trendBull=hc[hc.length-2]>he50[he50.length-2]&&he50[he50.length-2]>he200[he200.length-2];
+ let trendBear=hc[hc.length-2]<he50[he50.length-2]&&he50[he50.length-2]<he200[he200.length-2];
+ let buy=0,sell=0,buyReasons=[],sellReasons=[];
+ if(trendBull){buy+=2;buyReasons.push("HTF bullish EMA")}
+ if(trendBear){sell+=2;sellReasons.push("HTF bearish EMA")}
+ if(sweptLow){buy+=2;buyReasons.push("sell-side sweep")}
+ if(sweptHigh){sell+=2;sellReasons.push("buy-side sweep")}
+ if(c.close>sh){buy+=2;buyReasons.push("bullish BOS")}
+ if(c.close<sl){sell+=2;sellReasons.push("bearish BOS")}
+ if(bullFVG){buy+=1;buyReasons.push("bullish FVG")}
+ if(bearFVG){sell+=1;sellReasons.push("bearish FVG")}
+ if(lr[i]>=52){buy+=1;buyReasons.push("RSI > 52")}
+ if(lr[i]<=48){sell+=1;sellReasons.push("RSI < 48")}
+ if(displacement&&c.close>c.open){buy+=1;buyReasons.push("bullish displacement")}
+ if(displacement&&c.close<c.open){sell+=1;sellReasons.push("bearish displacement")}
+ if(vol&&c.close>c.open){buy+=1;buyReasons.push("volume expansion")}
+ if(vol&&c.close<c.open){sell+=1;sellReasons.push("volume expansion")}
+ let side=buy>=sell?"BUY":"SELL",score=Math.max(buy,sell),reasons=side==="BUY"?buyReasons:sellReasons;
+ if(score<Number($("min").value))side="WAIT";
+ let risk=la[i]||0,entry=c.close,stop=side==="BUY"?Math.min(c.low,lo)-.15*risk:Math.max(c.high,hi)+.15*risk;
+ let tp=side==="BUY"?entry+2*(entry-stop):entry-2*(stop-entry);
+ return {side,score,time:c.time,entry,stop,tp,rsi:lr[i],reasons,trend:trendBull?"BULLISH":trendBear?"BEARISH":"MIXED",close:c.close};
 }
-async function data(symbol,interval){
- const now=Math.floor(Date.now()/1000), days=interval==="5m"||interval==="15m"?7:35;
- const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?period1=${now-days*86400}&period2=${now}&interval=${interval}&events=history&includeAdjustedClose=true`;
- const r=await fetch(url); if(!r.ok)throw Error("Market data request failed");
- const j=await r.json(), q=j.chart.result?.[0]; if(!q)throw Error("No market data");
- const ts=q.timestamp||[], o=q.indicators.quote[0];
- return ts.map((t,i)=>({time:new Date(t*1000),open:o.open[i],high:o.high[i],low:o.low[i],close:o.close[i]}))
- .filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite));
-}
-function scanSMC(a,rr){
- if(a.length<50)return null;
- const A=atr(a), i=a.length-2, c=a[i];
- const prior=a.slice(Math.max(0,i-30),i);
- const recentHigh=Math.max(...prior.map(x=>x.high)), recentLow=Math.min(...prior.map(x=>x.low));
- const ref=a.slice(Math.max(0,i-8),i);
- const structHigh=Math.max(...ref.map(x=>x.high)), structLow=Math.min(...ref.map(x=>x.low));
- const sweptHigh=c.high>recentHigh&&c.close<recentHigh, sweptLow=c.low<recentLow&&c.close>recentLow;
- const displacement=A[i] && Math.abs(c.close-c.open)>=.8*A[i];
- const x=a[i-2];
- let side=null,low,high,sl,tp,reason;
- if(sweptLow&&displacement&&c.close>structHigh){
-   side="BUY"; low=x.high; high=c.low; if(!(high>low)){low=Math.min(c.open,c.close);high=Math.max(c.open,c.close)}
-   sl=Math.min(c.low,recentLow); tp=high+rr*(high-sl);
-   reason="Sell-side liquidity sweep + bullish BOS/displacement"+(c.low>x.high?" + bullish FVG":"");
- } else if(sweptHigh&&displacement&&c.close<structLow){
-   side="SELL"; low=c.high; high=x.low; if(!(high>low)){low=Math.min(c.open,c.close);high=Math.max(c.open,c.close)}
-   sl=Math.max(c.high,recentHigh); tp=low-rr*(sl-low);
-   reason="Buy-side liquidity sweep + bearish BOS/displacement"+(c.high<x.low?" + bearish FVG":"");
- }
- if(!side)return null;
- return {side,low,high,sl,tp,reason,time:c.time,close:c.close};
-}
-async function scan(){
- const r=$("result"); r.innerHTML='<div class="signal none">Scanning…</div><div class="status">Loading market candles.</div>';
+async function runScan(){
+ $("out").innerHTML='<div class="signal wait">SCANNING…</div><div class="small">Loading live Delta Exchange candles.</div>';
  try{
-   const symbol=$("market").value, name=$("market").selectedOptions[0].text, tf=$("tf").value, rr=Number($("rr").value);
-   const a=await data(symbol,tf), s=scanSMC(a,rr);
-   const last=a[a.length-2];
-   $("levels").innerHTML=`Recent liquidity high: <b>${fmt(Math.max(...a.slice(-32,-2).map(x=>x.high)))}</b><br>Recent liquidity low: <b>${fmt(Math.min(...a.slice(-32,-2).map(x=>x.low)))}</b>`;
-   if(!s){r.innerHTML='<div class="signal none">NO CONFIRMED SETUP</div><div class="status">No complete liquidity-sweep + BOS + displacement setup on the latest completed candle.</div>';return}
-   const cls=s.side==="BUY"?"buy":"sell";
-   r.innerHTML=`<div class="signal ${cls}">${s.side==="BUY"?"🟢 BUY":"🔴 SELL"} SETUP</div>
-   <div class="grid"><div class="metric"><small>Entry zone</small><b>${fmt(s.low)} – ${fmt(s.high)}</b></div>
-   <div class="metric"><small>Stop loss</small><b>${fmt(s.sl)}</b></div>
-   <div class="metric"><small>Take profit</small><b>${fmt(s.tp)}</b></div>
-   <div class="metric"><small>R:R</small><b>1:${rr}</b></div></div>
-   <p class="status"><b>${name} · ${tf}</b><br>${s.reason}<br>Completed candle: ${s.time.toLocaleString()}</p>`;
-   localStorage.setItem("lastSignal",JSON.stringify({key:s.time+"-"+s.side,s}));
-   if(Notification.permission==="granted") new Notification(`SMC ${s.side} — ${name}`,{body:`Entry ${fmt(s.low)}-${fmt(s.high)} | SL ${fmt(s.sl)} | TP ${fmt(s.tp)}`});
- }catch(e){r.innerHTML=`<div class="signal none">DATA ERROR</div><div class="status">${e.message}. Try again in a moment or use a broker/market-data API for more reliable live data.</div>`}
+  let sym=$("symbol").value,mode=+$("mode").value,trendRes=mode===5?"15m":"1h",hours=mode===5?72:240;
+  let h=await candles(sym,trendRes,hours),l=await candles(sym,mode+"m",mode===5?36:120),s=scoreSetup(h,l);
+  if(!s)throw Error("Not enough candle data");
+  let cls=s.side==="BUY"?"buy":s.side==="SELL"?"sell":"wait";
+  $("out").innerHTML=`<div class="signal ${cls}">${s.side==="BUY"?"🟢":s.side==="SELL"?"🔴":"⏳"} ${s.side}</div>
+  <div class="grid"><div class="m"><small>Setup score</small><b>${s.score}/10</b></div><div class="m"><small>HTF trend</small><b>${s.trend}</b></div>
+  <div class="m"><small>Entry</small><b>${s.entry.toFixed(2)}</b></div><div class="m"><small>RSI</small><b>${s.rsi?.toFixed(1)||"—"}</b></div>
+  <div class="m"><small>Stop</small><b>${s.stop.toFixed(2)}</b></div><div class="m"><small>2R target</small><b>${s.tp.toFixed(2)}</b></div></div>
+  <hr><div class="small"><b>Confirmed factors</b><br>${s.reasons.map(x=>`<span class="badge">✓ ${x}</span>`).join("")}</div>
+  <div class="small" style="margin-top:10px">Completed candle: ${s.time.toLocaleString()}</div>`;
+  if(s.side!=="WAIT"&&Notification.permission==="granted")new Notification(`Delta ${sym} ${s.side}`,{body:`Score ${s.score}/10 • Entry ${s.entry.toFixed(2)} • SL ${s.stop.toFixed(2)} • TP ${s.tp.toFixed(2)}`});
+ }catch(e){$("out").innerHTML=`<div class="signal wait">DATA ERROR</div><div class="small">${e.message}</div>`}
 }
-async function notifyPermission(){
- if(!("Notification"in window)){alert("Notifications are not supported by this browser.");return}
- const p=await Notification.requestPermission(); alert(p==="granted"?"Notifications enabled.":"Notification permission was not granted.");
-}
+async function enableNotify(){if(!("Notification"in window))return alert("Notifications are not supported.");let p=await Notification.requestPermission();alert(p==="granted"?"Notifications enabled.":"Permission not granted.")}
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
-</script>
-</body>
-</html>
+</script></body></html>
